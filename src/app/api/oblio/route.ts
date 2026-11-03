@@ -48,6 +48,12 @@ export async function POST(request: NextRequest) {
       method = "POST";
       url = BASE + "/api/docs/invoice";
       body = JSON.stringify(input?.payload || {});
+    } else if (action === "cancel_invoice") {
+      method = "PUT";
+      url = BASE + "/api/docs/invoice/cancel";
+      const q = input?.query || {};
+      body = new URLSearchParams({ cif: String(q.cif || ""), seriesName: String(q.seriesName || ""), number: String(q.number || "") }).toString();
+      headers["Content-Type"] = "application/x-www-form-urlencoded";
     } else if (action === "get_invoice") {
       const q = input?.query || {};
       const params = new URLSearchParams();
