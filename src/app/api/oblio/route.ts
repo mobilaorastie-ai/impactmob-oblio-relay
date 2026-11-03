@@ -53,7 +53,6 @@ export async function POST(request: NextRequest) {
       url = BASE + "/api/docs/invoice/cancel";
       const q = input?.query || {};
       body = new URLSearchParams({ cif: String(q.cif || ""), seriesName: String(q.seriesName || ""), number: String(q.number || "") }).toString();
-      headers["Content-Type"] = "application/x-www-form-urlencoded";
     } else if (action === "get_invoice") {
       const q = input?.query || {};
       const params = new URLSearchParams();
@@ -79,7 +78,7 @@ export async function POST(request: NextRequest) {
       headers:{
         "Authorization":"Bearer " + token,
         "Accept":"application/json",
-        ...(method==="POST"?{"Content-Type":"application/json"}:{})
+        ...(action==="cancel_invoice"?{"Content-Type":"application/x-www-form-urlencoded"}:(method==="POST"?{"Content-Type":"application/json"}:{}))
       },
       body,
       redirect:"follow"
