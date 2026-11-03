@@ -2,13 +2,34 @@ import { NextRequest, NextResponse } from "next/server";
 
 const BASE = "https://www.oblio.eu";
 
+async function getToken() {
+  const clientId = process.env.OBLIO_CLIENT_ID || "";
+  const clientSecret = process.env.OBLIO_CLIENT_SECRET || "";
+  if (!clientId || !clientSecret) throw new Error("Missing Oblio credentials");
+
+  const body = new URLSearchParams({
+    client_id: clientId,
+    client_secret: clientSecret,
+  });
+
+  const r = await fetch(BASE + "/api/authorize/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json" },
+    body: body.toString(),
+    redirect: "follow",
+  });
+
+  const raw = await r.text();
+  let data:any;
+  try { data = JSON.parse(raw); } catch { data = { raw }; }
+  if (!r.ok || !data?.access_token) {
+    throw new Error("Oblio auth failed: " + (data?.statusMessage || data?.error || r.status));
+  }
+  return data.access_token as string;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const auth = request.headers.get("authorization") || "";
-    if (!auth.toLowerCase().startsWith("bearer ")) {
-      return NextResponse.json({ ok:false, error:"Missing Authorization bearer token" }, { status:401 });
-    }
-
     const input = await request.json();
     const action = String(input?.action || "");
     let url = "";
@@ -41,10 +62,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ok:false,error:"Unsupported action"},{status:400});
     }
 
+    const token = await getToken();
     const upstream = await fetch(url,{
       method,
       headers:{
-        "Authorization":auth,
+        "Authorization":"Bearer " + token,
         "Accept":"application/json",
         ...(method==="POST"?{"Content-Type":"application/json"}:{})
       },
