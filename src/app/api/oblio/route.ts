@@ -53,6 +53,11 @@ export async function POST(request: NextRequest) {
       const params = new URLSearchParams();
       for (const [k,v] of Object.entries(q)) if (v !== undefined && v !== null && String(v) !== "") params.set(k,String(v));
       url = BASE + "/api/docs/invoice?" + params.toString();
+    } else if (action === "list_invoice") {
+      const q = input?.query || {};
+      const params = new URLSearchParams();
+      for (const [k,v] of Object.entries(q)) if (v !== undefined && v !== null && String(v) !== "") params.set(k,String(v));
+      url = BASE + "/api/docs/invoice/list?" + params.toString();
     } else if (action === "list_proforma") {
       const q = input?.query || {};
       const params = new URLSearchParams();
